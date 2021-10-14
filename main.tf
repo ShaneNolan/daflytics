@@ -18,6 +18,17 @@ terraform {
   required_version = "~> 1.0"
 }
 
+# AWS SQS
+resource "aws_sqs_queue" "rentsearch_sqs" {
+  name = "rentsearch"
+
+  message_retention_seconds = 86400 # a day
+}
+
+output "rentsearch_sqs_arn" {
+  value = aws_sqs_queue.rentsearch_sqs.arn
+}
+
 resource "null_resource" "lambda_build" {
   triggers = {
     handler      = base64sha256(file("${path.module}/rentsearch/rentsearch/lambda.py"))
@@ -38,6 +49,21 @@ data "archive_file" "lambda_with_dependencies" {
   depends_on = [null_resource.lambda_build]
 }
 
+
+module "iam_role" {
+  source  = "mineiros-io/iam-role/aws"
+  version = "~> 0.6.0"
+
+  name = "rent-search"
+
+  assume_role_principals = [
+    {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+  ]
+}
+
 module "lambda-function" {
   source  = "mineiros-io/lambda-function/aws"
   version = "~> 0.5.0"
@@ -52,19 +78,8 @@ module "lambda-function" {
   source_code_hash = data.archive_file.lambda_with_dependencies.output_base64sha256
 
   role_arn = module.iam_role.role.arn
-}
 
-
-module "iam_role" {
-  source  = "mineiros-io/iam-role/aws"
-  version = "~> 0.6.0"
-
-  name = "rent-search"
-
-  assume_role_principals = [
-    {
-      type        = "Service"
-      identifiers = ["lambda.amazonaws.com"]
-    }
-  ]
+  environment_variables = {
+    "sqsarn" = aws_sqs_queue.rentsearch_sqs.arn
+  }
 }
