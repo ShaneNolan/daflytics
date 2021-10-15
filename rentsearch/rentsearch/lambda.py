@@ -10,9 +10,9 @@ def lambda_handler(event, context):
     base_url = 'https://www.daft.ie'
 
     sqs = boto3.resource('sqs')
-    queue = sqs.get_queue_by_name(QueueName=os.environ['sqsarn'])
+    queue = sqs.get_queue_by_name(QueueName=os.environ['sqsname'])
 
-    resp = requests.get(f'{base_url}property-for-rent/limerick-city?sort=publishDateDesc')
+    resp = requests.get(f'{base_url}/property-for-rent/limerick-city?sort=publishDateDesc')
 
     soup = BeautifulSoup(resp.text, 'html.parser')
     for link in soup.select('a[href^="/for-rent/"]'):

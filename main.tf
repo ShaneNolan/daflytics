@@ -25,9 +25,9 @@ resource "aws_sqs_queue" "rentsearch_sqs" {
   message_retention_seconds = 86400 # a day
 }
 
-output "rentsearch_sqs_arn" {
-  value = aws_sqs_queue.rentsearch_sqs.arn
-}
+# output "rentsearch_sqs_arn" {
+#   value = aws_sqs_queue.rentsearch_sqs.arn
+# }
 
 resource "null_resource" "lambda_build" {
   triggers = {
@@ -64,6 +64,32 @@ module "iam_role" {
   ]
 }
 
+data "aws_iam_policy_document" "rentsearch_iam_policy" {
+  statement {
+    sid       = "AllowSQSPermissions"
+    effect    = "Allow"
+    resources = [aws_sqs_queue.rentsearch_sqs.arn]
+
+    actions = [
+      "sqs:ListQueues",
+      "sqs:ListQueueTags",
+      "sqs:GetQueueUrl",
+      "sqs:SendMessage",
+      "sqs:GetQueueAttributes",
+      "sqs:ChangeMessageVisibility",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "rentserach_iam_policy" {
+  policy = data.aws_iam_policy_document.rentsearch_iam_policy.json
+}
+
+resource "aws_iam_role_policy_attachment" "attach_policy" {
+  policy_arn = aws_iam_policy.rentserach_iam_policy.arn
+  role       = module.iam_role.role.name
+}
+
 module "lambda-function" {
   source  = "mineiros-io/lambda-function/aws"
   version = "~> 0.5.0"
@@ -80,6 +106,6 @@ module "lambda-function" {
   role_arn = module.iam_role.role.arn
 
   environment_variables = {
-    "sqsarn" = aws_sqs_queue.rentsearch_sqs.arn
+    "sqsname" = aws_sqs_queue.rentsearch_sqs.name
   }
 }
