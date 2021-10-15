@@ -25,31 +25,7 @@ resource "aws_sqs_queue" "rentsearch_sqs" {
   message_retention_seconds = 86400 # a day
 }
 
-# output "rentsearch_sqs_arn" {
-#   value = aws_sqs_queue.rentsearch_sqs.arn
-# }
-
-resource "null_resource" "lambda_build" {
-  triggers = {
-    handler      = base64sha256(file("${path.module}/rentsearch/rentsearch/lambda.py"))
-    requirements = base64sha256(file("${path.module}/rentsearch/requirements.txt"))
-    build        = base64sha256(file("${path.module}/rentsearch/build.py"))
-  }
-
-  provisioner "local-exec" {
-    command = "python ${path.module}/rentsearch/build.py"
-  }
-}
-
-data "archive_file" "lambda_with_dependencies" {
-  type        = "zip"
-  source_dir  = "${path.module}/rentsearch/rentsearch/"
-  output_path = "${path.module}/rentsearch/lambda.zip"
-
-  depends_on = [null_resource.lambda_build]
-}
-
-
+# AWS IAM
 module "iam_role" {
   source  = "mineiros-io/iam-role/aws"
   version = "~> 0.6.0"
@@ -89,6 +65,28 @@ resource "aws_iam_role_policy_attachment" "attach_policy" {
   policy_arn = aws_iam_policy.rentserach_iam_policy.arn
   role       = module.iam_role.role.name
 }
+
+# AWS LAMBDA
+resource "null_resource" "lambda_build" {
+  triggers = {
+    handler      = base64sha256(file("${path.module}/rentsearch/rentsearch/lambda.py"))
+    requirements = base64sha256(file("${path.module}/rentsearch/requirements.txt"))
+    build        = base64sha256(file("${path.module}/rentsearch/build.py"))
+  }
+
+  provisioner "local-exec" {
+    command = "python ${path.module}/rentsearch/build.py"
+  }
+}
+
+data "archive_file" "lambda_with_dependencies" {
+  type        = "zip"
+  source_dir  = "${path.module}/rentsearch/rentsearch/"
+  output_path = "${path.module}/rentsearch/lambda.zip"
+
+  depends_on = [null_resource.lambda_build]
+}
+
 
 module "lambda-function" {
   source  = "mineiros-io/lambda-function/aws"
