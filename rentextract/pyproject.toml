@@ -6,6 +6,8 @@ authors = ["Shane Nolan <shanemichealnolan@gmail.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
+beautifulsoup4 = "^4.10.0"
+requests = "^2.26.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
