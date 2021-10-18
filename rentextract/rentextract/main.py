@@ -58,12 +58,12 @@ def extract_property_datas(props: Dict[str, Any]) -> Dict[str, Any]:
         property_overview = json.dumps(listing[KEY_PROPERTY_OVERVIEW])
 
     return [
-        {'name': 'title', 'value': {'stringValue': listing['seoTitle']}},
-        {'name': 'price', 'value': {'longValue': int(listing['nonFormatted']['price'])}},
-        {'name': 'propertyType', 'value': {'stringValue': listing['propertyType']}},
-        {'name': 'numBedrooms', 'value': {'stringValue': listing['numBedrooms']}},
-        {'name': 'numBathrooms', 'value': {'stringValue': listing['numBathrooms']}},
-        {'name': 'ber', 'value': {'stringValue': listing['ber']['rating']}},
+        {'name': 'title', 'value': {'stringValue': listing.get('seoTitle', '')}},
+        {'name': 'price', 'value': {'longValue': int(listing.get('nonFormatted', {}).get('price', 0))}},
+        {'name': 'propertyType', 'value': {'stringValue': listing.get('propertyType', '')}},
+        {'name': 'numBedrooms', 'value': {'stringValue': listing.get('numBedrooms', '')}},
+        {'name': 'numBathrooms', 'value': {'stringValue': listing.get('numBathrooms', '')}},
+        {'name': 'ber', 'value': {'stringValue': listing.get('ber', {}).get('rating', '')}},
         {'name': 'facilities', 'value': {'stringValue': facilities}},
         {'name': 'propertyOverview', 'value': {'stringValue': property_overview}},
     ]
