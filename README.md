@@ -6,7 +6,7 @@ An AWS serverless application using Terraform to scrape rental properties in Lim
 
 ![Amazon Web Services Architecture Diagram](docs/imgs/aws_arch.png)
 
-_SQS isn't necessary since the number of properties in Limerick are normally low and you can invoke another Lambda from Lambda._
+<small>_SQS isn't necessary since the number of properties in Limerick are normally low and you can invoke another Lambda from Lambda._</small>
 
 </center>
 
