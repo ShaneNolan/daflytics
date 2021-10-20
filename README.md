@@ -18,6 +18,8 @@ An AWS serverless application using Terraform to scrape rental properties in Lim
 terraform init
 terraform apply
 
+# You will need to execute the setup.sql against the database to set it up, follow the Query Database instructions.
+
 # To tear down the deployment run: terraform destory
 ```
 
